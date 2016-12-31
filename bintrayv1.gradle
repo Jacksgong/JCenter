@@ -32,14 +32,26 @@ afterEvaluate { project ->
 
 version = VERSION_NAME
 
-// Bintray
-// local.properties for bintray userName,apiKey,password
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-
 bintray {
-    user = properties.getProperty("bintray.user")
-    key = properties.getProperty("bintray.apikey")
+    Properties properties = new Properties()
+    def localPropertiesFile = project.rootProject.file('local.properties')
+
+    def bintrayUser = ""
+    def bintrayApiKey = ""
+    def bintrayGPGPassword = ""
+
+    if (!localPropertiesFile.exists()) {
+        println "can't find ${localPropertiesFile.getAbsolutePath()} file to read bintray information."
+    } else {
+        properties.load(localPropertiesFile.newDataInputStream())
+
+        bintrayUser = properties.getProperty("bintray.user")
+        bintrayApiKey = properties.getProperty("bintray.apikey")
+        bintrayGPGPassword = properties.getProperty("bintray.gpg.password")
+    }
+
+    user = bintrayUser
+    key = bintrayApiKey
 
     configurations = ['archives']
     pkg {
@@ -56,7 +68,7 @@ bintray {
         version {
             gpg {
                 sign = true //Determines whether to GPG sign the files. The default is false
-                passphrase = properties.getProperty("bintray.gpg.password")
+                passphrase = bintrayGPGPassword
             }
         }
     }
